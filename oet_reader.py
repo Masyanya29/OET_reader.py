@@ -32,34 +32,29 @@ with col2:
             questions = "\n".join(page.extract_text() for page in pdf.pages if page.extract_text())
         st.text_area("Питання", value=questions, height=500)
 
-# Функція для відображення таймера
-def display_timer():
-    if st.session_state.timer_running and st.session_state.start_time:
-        elapsed = int(time.time() - st.session_state.start_time)
-        remaining = max(0, 15 * 60 - elapsed)
-        st.session_state.seconds_left = remaining
-        if remaining == 0:
-            st.session_state.timer_running = False
-        mins, secs = divmod(remaining, 60)
-    else:
-        mins, secs = divmod(st.session_state.seconds_left, 60)
-
-    st.markdown(f"### ⏰ {mins:02}:{secs:02}")
-    if st.session_state.seconds_left == 0:
-        st.warning("⛔ Час вийшов!")
-
 # Кнопка старту таймера
 if st.button("▶️ Старт 15 хвилин"):
     st.session_state.start_time = time.time()
     st.session_state.timer_running = True
     st.session_state.seconds_left = 15 * 60
 
-# Вивід таймера
+# Вивід таймера з live-оновленням
 placeholder = st.empty()
-with placeholder:
-    display_timer()
 
-# Примусове оновлення кожну секунду якщо таймер активний
 if st.session_state.timer_running:
-    time.sleep(1)
-    st.experimental_rerun()
+    while st.session_state.seconds_left > 0:
+        elapsed = int(time.time() - st.session_state.start_time)
+        remaining = max(0, 15 * 60 - elapsed)
+        st.session_state.seconds_left = remaining
+        mins, secs = divmod(remaining, 60)
+
+        with placeholder.container():
+            st.markdown(f"### ⏰ {mins:02}:{secs:02}")
+            time.sleep(1)
+            st.experimental_rerun()
+else:
+    mins, secs = divmod(st.session_state.seconds_left, 60)
+    with placeholder.container():
+        st.markdown(f"### ⏰ {mins:02}:{secs:02}")
+        if st.session_state.seconds_left == 0:
+            st.warning("⛔ Час вийшов!")
