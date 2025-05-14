@@ -11,13 +11,15 @@ st.title("📝 OET Reading Practice")
 if "timer_running" in st.session_state and st.session_state.timer_running:
     st_autorefresh(interval=1000, key="auto_refresh")
 
-# Ініціалізація таймера
+# Ініціалізація таймера та станів
 if "start_time" not in st.session_state:
     st.session_state.start_time = None
 if "seconds_left" not in st.session_state:
     st.session_state.seconds_left = 15 * 60
 if "timer_running" not in st.session_state:
     st.session_state.timer_running = False
+if "user_answers" not in st.session_state:
+    st.session_state.user_answers = ""
 
 col1, col2 = st.columns(2)
 
@@ -27,15 +29,17 @@ with col1:
     if text_pdf:
         with pdfplumber.open(BytesIO(text_pdf.read())) as pdf:
             text = "\n".join(page.extract_text() for page in pdf.pages if page.extract_text())
-        st.text_area("Текст", value=text, height=500)
+        st.text_area("Текст", value=text, height=500, key="text_display")
 
 with col2:
-    st.subheader("❓ Питання")
+    st.subheader("❓ Питання + Відповіді")
     question_pdf = st.file_uploader("Завантаж PDF з питаннями", type="pdf", key="questions")
-    if question_pdf:
+    if question_pdf and not st.session_state.user_answers:
         with pdfplumber.open(BytesIO(question_pdf.read())) as pdf:
-            questions = "\n".join(page.extract_text() for page in pdf.pages if page.extract_text())
-        st.text_area("Питання", value=questions, height=500)
+            st.session_state.user_answers = "\n".join(
+                page.extract_text() for page in pdf.pages if page.extract_text()
+            )
+    st.session_state.user_answers = st.text_area("Пиши відповіді тут:", value=st.session_state.user_answers, height=500)
 
 # Кнопка старту таймера
 if st.button("▶️ Старт 15 хвилин"):
