@@ -2,9 +2,15 @@ import streamlit as st
 import pdfplumber
 import time
 from io import BytesIO
+from streamlit_extras.app_state import AppState
+from streamlit_autorefresh import st_autorefresh
 
 st.set_page_config(layout="wide")
 st.title("📝 OET Reading Practice")
+
+# Автооновлення кожну секунду (якщо таймер працює)
+if "timer_running" in st.session_state and st.session_state.timer_running:
+    st_autorefresh(interval=1000, key="auto_refresh")
 
 # Ініціалізація таймера
 if "start_time" not in st.session_state:
@@ -38,23 +44,17 @@ if st.button("▶️ Старт 15 хвилин"):
     st.session_state.timer_running = True
     st.session_state.seconds_left = 15 * 60
 
-# Вивід таймера з live-оновленням
+# Вивід таймера
 placeholder = st.empty()
+if st.session_state.timer_running and st.session_state.start_time:
+    elapsed = int(time.time() - st.session_state.start_time)
+    remaining = max(0, 15 * 60 - elapsed)
+    st.session_state.seconds_left = remaining
+    if remaining == 0:
+        st.session_state.timer_running = False
 
-if st.session_state.timer_running:
-    while st.session_state.seconds_left > 0:
-        elapsed = int(time.time() - st.session_state.start_time)
-        remaining = max(0, 15 * 60 - elapsed)
-        st.session_state.seconds_left = remaining
-        mins, secs = divmod(remaining, 60)
-
-        with placeholder.container():
-            st.markdown(f"### ⏰ {mins:02}:{secs:02}")
-            time.sleep(1)
-            st.experimental_rerun()
-else:
-    mins, secs = divmod(st.session_state.seconds_left, 60)
-    with placeholder.container():
-        st.markdown(f"### ⏰ {mins:02}:{secs:02}")
-        if st.session_state.seconds_left == 0:
-            st.warning("⛔ Час вийшов!")
+mins, secs = divmod(st.session_state.seconds_left, 60)
+with placeholder.container():
+    st.markdown(f"### ⏰ {mins:02}:{secs:02}")
+    if st.session_state.seconds_left == 0:
+        st.warning("⛔ Час вийшов!")
