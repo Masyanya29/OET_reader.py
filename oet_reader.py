@@ -2,7 +2,6 @@ import streamlit as st
 import pdfplumber
 import time
 from io import BytesIO
-from streamlit_extras.app_state import AppState
 from streamlit_autorefresh import st_autorefresh
 
 st.set_page_config(layout="wide")
@@ -58,3 +57,4 @@ with placeholder.container():
     st.markdown(f"### ⏰ {mins:02}:{secs:02}")
     if st.session_state.seconds_left == 0:
         st.warning("⛔ Час вийшов!")
+
