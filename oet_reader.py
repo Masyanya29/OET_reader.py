@@ -6,11 +6,13 @@ from io import BytesIO
 st.set_page_config(layout="wide")
 st.title("📝 OET Reading Practice")
 
-# Таймер
+# Ініціалізація таймера
 if "start_time" not in st.session_state:
     st.session_state.start_time = None
 if "seconds_left" not in st.session_state:
     st.session_state.seconds_left = 15 * 60
+if "timer_running" not in st.session_state:
+    st.session_state.timer_running = False
 
 col1, col2 = st.columns(2)
 
@@ -32,21 +34,32 @@ with col2:
 
 # Функція для відображення таймера
 def display_timer():
-    remaining = st.session_state.seconds_left
-    mins, secs = divmod(remaining, 60)
+    if st.session_state.timer_running and st.session_state.start_time:
+        elapsed = int(time.time() - st.session_state.start_time)
+        remaining = max(0, 15 * 60 - elapsed)
+        st.session_state.seconds_left = remaining
+        if remaining == 0:
+            st.session_state.timer_running = False
+        mins, secs = divmod(remaining, 60)
+    else:
+        mins, secs = divmod(st.session_state.seconds_left, 60)
+
     st.markdown(f"### ⏰ {mins:02}:{secs:02}")
+    if st.session_state.seconds_left == 0:
+        st.warning("⛔ Час вийшов!")
 
 # Кнопка старту таймера
 if st.button("▶️ Старт 15 хвилин"):
     st.session_state.start_time = time.time()
+    st.session_state.timer_running = True
     st.session_state.seconds_left = 15 * 60
 
-# Оновлення таймера
-if st.session_state.start_time:
-    elapsed = int(time.time() - st.session_state.start_time)
-    st.session_state.seconds_left = max(0, 15 * 60 - elapsed)
+# Вивід таймера
+placeholder = st.empty()
+with placeholder:
     display_timer()
-    if st.session_state.seconds_left == 0:
-        st.warning("⛔ Час вийшов!")
-else:
-    display_timer()
+
+# Примусове оновлення кожну секунду якщо таймер активний
+if st.session_state.timer_running:
+    time.sleep(1)
+    st.experimental_rerun()
