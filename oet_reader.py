@@ -39,7 +39,10 @@ with col2:
             st.session_state.user_answers = "\n".join(
                 page.extract_text() for page in pdf.pages if page.extract_text()
             )
-    st.session_state.user_answers = st.text_area("Пиши відповіді тут:", value=st.session_state.user_answers, height=500)
+
+    updated_text = st.text_area("Пиши відповіді тут:", value=st.session_state.user_answers, height=500, key="answer_box")
+    if updated_text != st.session_state.user_answers:
+        st.session_state.user_answers = updated_text
 
 # Кнопка старту таймера
 if st.button("▶️ Старт 15 хвилин"):
